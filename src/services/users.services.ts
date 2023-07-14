@@ -1,16 +1,74 @@
 import User from '~/models/schemas/User.schema'
 import databaseService from '~/services/database.services'
-
+import { TokenType } from '~/constants/enums'
+import { RegisterReqBody } from '~/models/requests/User.requests'
+import { hashPassword } from '~/utils/crypto'
+import { signToken } from '~/utils/jwt'
+import { config } from 'dotenv'
+import RefreshToken from '~/models/schemas/RefreshToken.schema'
+import { ObjectId } from 'mongodb'
+import { USERS_MESSAGES } from '~/constants/messages'
+config()
 class UsersService {
-  async register(payload: { email: string; password: string }) {
-    const { email, password } = payload
+  private signAccessToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.AccessToken
+      },
+      options: {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN
+      }
+    })
+  }
+  private signRefreshToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.RefreshToken
+      },
+      options: {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
+      }
+    })
+  }
+  private signAccessAndRefreshToken(user_id: string) {
+    return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
+  }
+  async register(payload: RegisterReqBody) {
     const result = await databaseService.users.insertOne(
-      new User({
-        email,
-        password
-      })
+      new User({ ...payload, date_of_birth: new Date(payload.date_of_birth), password: hashPassword(payload.password) })
     )
-    return result
+    const user_id = result.insertedId.toString()
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+    return {
+      access_token,
+      refresh_token
+    }
+  }
+  async login(user_id: string) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+    return {
+      access_token,
+      refresh_token
+    }
+  }
+  async logout(refresh_token: string) {
+    const result = await databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    return {
+      message: USERS_MESSAGES.LOGOUT_SUCCESS
+    }
+  }
+  async checkEmailExist(email: string) {
+    const user = await databaseService.users.findOne({ email })
+    console.log(user)
+    return Boolean(user)
   }
 }
 
