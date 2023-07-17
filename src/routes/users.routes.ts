@@ -8,7 +8,8 @@ import {
   resendVerifyEmailController,
   resetPasswordController,
   verifyEmailController,
-  verifyForgotPasswordController
+  verifyForgotPasswordController,
+  updateMeController
 } from '~/controllers/users.controllers'
 import {
   accessTokenValidator,
@@ -18,6 +19,7 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  verifiedUserValidator,
   verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -83,5 +85,12 @@ usersRouter.post('/reset-password', resetPasswordValidator, wrapRequestHandler(r
  */
 usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
 // truyen access token len nhung no ko nam trong body nen van de get binh thuong
-
+/**
+ * Description: Update my profile
+ * Path: /me
+ * Method: PATCH
+ * Header: { Authorization: Bearer <access_token> }
+ * Body: UserSchema
+ */
+usersRouter.patch('/profile', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(updateMeController))
 export default usersRouter
