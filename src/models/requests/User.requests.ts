@@ -1,6 +1,10 @@
 import { JwtPayload } from 'jsonwebtoken'
 import { TokenType } from '~/constants/enums'
 
+export interface GetProfileReqParams {
+  username: string
+}
+
 export interface RegisterReqBody {
   name: string
   email: string
