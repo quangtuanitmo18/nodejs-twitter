@@ -12,6 +12,17 @@ export interface LoginReqBody {
   email: string
   password: string
 }
+export interface UpdateMeReqBody {
+  name?: string
+  date_of_birth?: string
+  bio?: string
+  location?: string
+  website?: string
+  username?: string
+  avatar?: string
+  cover_photo?: string
+}
+
 export interface ResetPasswordReqBody {
   password: string
   confirm_password: string
