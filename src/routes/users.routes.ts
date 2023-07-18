@@ -144,7 +144,7 @@ usersRouter.post(
  * Header: { Authorization: Bearer <access_token> }
  */
 usersRouter.delete(
-  '/follow/:user_id',
+  '/follow/:followed_user_id',
   accessTokenValidator,
   verifiedUserValidator,
   unfollowValidator,

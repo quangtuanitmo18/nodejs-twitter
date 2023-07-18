@@ -486,7 +486,7 @@ export const followValidator = validate(
 export const unfollowValidator = validate(
   checkSchema(
     {
-      user_id: userIdSchema
+      followed_user_id: userIdSchema
     },
     ['params']
   )
