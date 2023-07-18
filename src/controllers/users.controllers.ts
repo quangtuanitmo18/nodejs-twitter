@@ -25,7 +25,7 @@ import { UserVerifyStatus } from '~/constants/enums'
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
   const user = req.user as User
-  console.log(user)
+  // console.log(user)
   const user_id = user._id as ObjectId
   const result = await usersService.login({ user_id: user_id.toString(), verify: user.verify })
   return res.json({
@@ -44,6 +44,7 @@ export const registerController = async (
     result
   })
 }
+
 export const logoutController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
   const { refresh_token } = req.body
   const result = await usersService.logout(refresh_token)
@@ -182,4 +183,10 @@ export const changePasswordController = async (
   const { password } = req.body
   const result = await usersService.changePassword(user_id, password)
   return res.json(result)
+}
+export const oauthController = async (req: Request, res: Response) => {
+  const { code } = req.query
+  const result = await usersService.oauth(code as string)
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+  return res.redirect(urlRedirect)
 }
