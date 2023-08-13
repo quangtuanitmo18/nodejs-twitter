@@ -14,7 +14,8 @@ import {
   followController,
   unfollowController,
   changePasswordController,
-  oauthController
+  oauthController,
+  refreshTokenController
 } from '~/controllers/users.controllers'
 import { filterMiddleware } from '~/middlewares/common.middlewares'
 import {
@@ -176,4 +177,11 @@ usersRouter.put(
  */
 usersRouter.get('/oauth/google', wrapRequestHandler(oauthController))
 
+/**
+ * Description. Refresh Token
+ * Path: /refresh-token
+ * Method: POST
+ * Body: { refresh_token: string }
+ */
+usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 export default usersRouter
