@@ -50,7 +50,7 @@ class MediasService {
       files.map(async (file) => {
         await encodeHLSWithMultipleVideoStreams(file.filepath)
         const newName = getNameFromFullname(file.newFilename)
-        await fsPromise.unlink(file.filepath)
+        // await fsPromise.unlink(file.filepath)
         return {
           url: isProduction
             ? `${process.env.HOST}/static/video-hls/${newName}`
