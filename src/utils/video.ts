@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import path from 'path'
+import { convertPathtoEncodeHls } from './app'
 
 const MAXIMUM_BITRATE_720P = 5 * 10 ** 6 // 5Mbps
 const MAXIMUM_BITRATE_1080P = 8 * 10 ** 6 // 8Mbps
@@ -50,19 +51,25 @@ const getWidth = (height: number, resolution: { width: number; height: number })
 export const encodeHLSWithMultipleVideoStreams = async (inputPath: string) => {
   const [bitrate, resolution] = await Promise.all([getBitrate(inputPath), getResolution(inputPath)])
   const parent_folder = path.join(inputPath, '..')
-  const outputSegmentPath = path.join(parent_folder, 'v%v/fileSequence%d.ts')
-  const outputPath = path.join(parent_folder, 'v%v/prog_index.m3u8')
+  const outputSegmentPath = convertPathtoEncodeHls(path.join(parent_folder, 'v%v/fileSequence%d.ts'))
+  const outputPath = convertPathtoEncodeHls(path.join(parent_folder, 'v%v/prog_index.m3u8'))
   const bitrate720 = bitrate > MAXIMUM_BITRATE_720P ? MAXIMUM_BITRATE_720P : bitrate
   const bitrate1080 = bitrate > MAXIMUM_BITRATE_1080P ? MAXIMUM_BITRATE_1080P : bitrate
   const bitrate1440 = bitrate > MAXIMUM_BITRATE_1440P ? MAXIMUM_BITRATE_1440P : bitrate
   console.log(bitrate, resolution)
 
   const commandWithMax720 = `
-  ffmpeg -y -i ${inputPath} -preset veryslow -g 48 -crf 17 -sc_threshold 0 -map 0:0 -map 0:1 -s:v:0 ${getWidth(
-    720,
-    resolution
-  )}x720 -c:v:0 libx264 -b:v:0 ${bitrate720} -c:a copy -var_stream_map "v:0,a:0" -master_pl_name master.m3u8 -f hls -hls_time 6 -hls_list_size 0 -hls_segment_filename "${outputSegmentPath}" ${outputPath}
-  `
+  ffmpeg -y -i ${inputPath} \\
+  -preset veryslow -g 48 -crf 17 -sc_threshold 0 \
+  -map 0:0 -map 0:1 \\
+  -s:v:0 ${getWidth(720, resolution)}x720 -c:v:0 libx264 -b:v:0 ${bitrate720} \\
+  -c:a copy \\
+  -var_stream_map "v:0,a:0" \\
+  -master_pl_name master.m3u8 \\
+  -f hls -hls_time 6 -hls_list_size 0 \\
+  -hls_segment_filename "${outputSegmentPath}" \\
+  ${outputPath}
+`
 
   const commandWithMax1080 = `
   ffmpeg -y -i ${inputPath} \\
