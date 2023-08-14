@@ -328,6 +328,9 @@ class UsersService {
       this.signRefreshToken({ user_id, verify }),
       databaseService.refreshTokens.deleteOne({ token: refresh_token })
     ])
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
     return {
       access_token: new_access_token,
       refresh_token: new_refresh_token
