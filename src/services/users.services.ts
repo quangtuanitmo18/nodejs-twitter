@@ -314,6 +314,28 @@ class UsersService {
       message: USERS_MESSAGES.UNFOLLOW_SUCCESS
     }
   }
+  async refreshToken({
+    user_id,
+    verify,
+    refresh_token
+  }: {
+    user_id: string
+    verify: UserVerifyStatus
+    refresh_token: string
+  }) {
+    const [new_access_token, new_refresh_token] = await Promise.all([
+      this.signAccessToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify }),
+      databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    ])
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+    return {
+      access_token: new_access_token,
+      refresh_token: new_refresh_token
+    }
+  }
   async changePassword(user_id: string, new_password: string) {
     await databaseService.users.updateOne(
       { _id: new ObjectId(user_id) },
