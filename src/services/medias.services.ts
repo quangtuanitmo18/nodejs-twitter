@@ -12,6 +12,41 @@ import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
 import fsPromise from 'fs/promises'
 
 config()
+class Queue {
+  items: string[]
+  encoding: boolean
+  constructor() {
+    this.items = []
+    this.encoding = false
+  }
+  enqueue(item: string) {
+    this.items.push(item)
+    this.processEncode()
+  }
+  async processEncode() {
+    if (this.encoding) return
+    if (this.items.length > 0) {
+      this.encoding = true
+      const videoPath = this.items[0]
+      try {
+        await encodeHLSWithMultipleVideoStreams(videoPath)
+        this.items.shift()
+        await fsPromise.unlink(videoPath)
+        console.log(`Encode video ${videoPath} success`)
+      } catch (error) {
+        console.error(`Encode video ${videoPath} error`)
+        console.error(error)
+      }
+      this.encoding = false
+      this.processEncode()
+    } else {
+      console.log('Encode video queue is empty')
+    }
+  }
+}
+
+const queue = new Queue()
+
 class MediasService {
   async uploadImage(req: Request) {
     const files = await handleUploadImage(req)
@@ -48,8 +83,10 @@ class MediasService {
 
     const result: Media[] = await Promise.all(
       files.map(async (file) => {
-        await encodeHLSWithMultipleVideoStreams(file.filepath)
+        // await encodeHLSWithMultipleVideoStreams(file.filepath)
         const newName = getNameFromFullname(file.newFilename)
+        queue.enqueue(file.filepath)
+        // encode hls with queue
         // await fsPromise.unlink(file.filepath)
         return {
           url: isProduction
