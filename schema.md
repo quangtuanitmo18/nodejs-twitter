@@ -1,11 +1,5 @@
 # Thiết kế Schema Twitter bằng MongoDB
 
-## Nên đọc trước
-
-- [[P1] Giải ngố authentication: Basic Authentication](https://duthanhduoc.com/blog/p1-giai-ngo-authentication-basic-authentication)
-- [[P2] Giải ngố authentication: Cookie và Session Authentication](https://duthanhduoc.com/blog/p2-giai-ngo-authentication-session)
-- [[P3] Giải ngố authentication: JWT](https://duthanhduoc.com/blog/p3-giai-ngo-authentication-jwt)
-
 ## Một số ghi chú nhỏ
 
 - Tên collection nên được đặt theo dạng số nhiều, kiểu snake_case, ví dụ `users`, `refresh_tokens`
