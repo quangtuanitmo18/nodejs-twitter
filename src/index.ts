@@ -8,6 +8,7 @@ import { config } from 'dotenv'
 import staticRouter from './routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from './constants/dir'
 import cors from 'cors'
+import tweetsRouter from './routes/tweets.routes'
 
 config()
 
@@ -24,6 +25,7 @@ app.use('/medias', mediasRouter)
 // app.use('/static', express.static(UPLOAD_VIDEO_DIR))
 app.use('/static', staticRouter)
 app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
+app.use('/tweets', tweetsRouter)
 
 app.use(defaultErrorHandler)
 app.listen(port, () => {
