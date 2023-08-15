@@ -5,6 +5,7 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Follower from '~/models/schemas/Follower.schema'
 import VideoStatus from '~/models/schemas/VideoStatus.shema'
 import Tweet from '~/models/schemas/Tweet.schema'
+import Hashtag from '~/models/schemas/Hashtag.schema'
 config()
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.jlyrc4n.mongodb.net/?retryWrites=true&w=majority`
 
@@ -40,6 +41,9 @@ class DatabaseService {
   }
   get tweets(): Collection<Tweet> {
     return this.db.collection('tweets')
+  }
+  get hashtags(): Collection<Hashtag> {
+    return this.db.collection('hashtags')
   }
 }
 
