@@ -1,7 +1,7 @@
 import { Request } from 'express'
-import { getNameFromFullname, handleUploadImage, handleUploadVideo } from '~/utils/file'
+import { getNameFromFullname, getFiles, handleUploadImage, handleUploadVideo } from '~/utils/file'
 import sharp from 'sharp'
-import { UPLOAD_IMAGE_DIR } from '~/constants/dir'
+import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import path from 'path'
 import fs from 'fs'
 import fsPromise from 'fs/promises'
@@ -16,6 +16,7 @@ import { convertPathtoEncodeHls } from '~/utils/app'
 import { uploadFileToS3 } from '~/utils/s3'
 import mime from 'mime'
 import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3'
+import { rimrafSync } from 'rimraf'
 
 config()
 
@@ -62,6 +63,24 @@ class Queue {
         await encodeHLSWithMultipleVideoStreams(videoPath)
         this.items.shift()
         // await fsPromise.unlink(videoPath)
+        const files = getFiles(path.resolve(UPLOAD_VIDEO_DIR, idName))
+        console.log(files)
+        await Promise.all(
+          files.map((filepath) => {
+            // D:\laragon\www\DuocDEv\khoahoc\nodejs\tweeter\uploads\videos\90db0081-bb2f-4620-8b11-df9a8f0b5a43\v0\fileSequence0.ts
+            // chu y duong dan cho nay
+
+            const filename = 'videos-hls/' + filepath.replace(path.resolve(UPLOAD_VIDEO_DIR) + '\\', '')
+            // console.log(filename)
+            return uploadFileToS3({
+              filepath,
+              filename,
+              contentType: mime.getType(filepath) as string
+            })
+          })
+        )
+        console.log(path.resolve(UPLOAD_VIDEO_DIR, idName))
+        rimrafSync(path.resolve(UPLOAD_VIDEO_DIR, idName))
         await databaseService.videoStatus.updateOne(
           {
             name: idName
@@ -170,8 +189,8 @@ class MediasService {
         queue.enqueue(convertPathtoEncodeHls(file.filepath))
         return {
           url: isProduction
-            ? `${process.env.HOST}/static/video-hls/${newName}.m3u8`
-            : `http://localhost:${process.env.PORT}/static/video-hls/${newName}.m3u8`,
+            ? `${process.env.HOST}/static/video-hls/${newName}/master.m3u8`
+            : `http://localhost:${process.env.PORT}/static/video-hls/${newName}/master.m3u8`,
           type: MediaType.HLS
         }
       })
