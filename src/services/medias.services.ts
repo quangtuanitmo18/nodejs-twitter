@@ -70,7 +70,7 @@ class Queue {
             // D:\laragon\www\DuocDEv\khoahoc\nodejs\tweeter\uploads\videos\90db0081-bb2f-4620-8b11-df9a8f0b5a43\v0\fileSequence0.ts
             // chu y duong dan cho nay
 
-            const filename = 'videos-hls/' + filepath.replace(path.resolve(UPLOAD_VIDEO_DIR) + '\\', '')
+            const filename = 'videos-hls/' + filepath.replace(path.resolve(UPLOAD_VIDEO_DIR), '').slice(1)
             // console.log(filename)
             return uploadFileToS3({
               filepath,
