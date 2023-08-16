@@ -21,3 +21,12 @@ export interface TweetQuery extends Query {
   page: string
   tweet_type: string
 }
+export interface TweetParam extends ParamsDictionary {
+  tweet_id: string
+}
+
+export interface TweetQuery extends Query {
+  limit: string
+  page: string
+  tweet_type: string
+}
