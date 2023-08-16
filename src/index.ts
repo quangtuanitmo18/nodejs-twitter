@@ -15,7 +15,14 @@ import searchRouter from './routes/searchs.routes'
 // import './utils/fake'
 config()
 
-databaseService.connect()
+databaseService.connect().then(() => {
+  databaseService.indexUsers()
+  databaseService.indexRefreshTokens()
+  databaseService.indexVideoStatus()
+  databaseService.indexFollowers()
+  databaseService.indexTweets()
+})
+
 const app = express()
 app.use(cors())
 
