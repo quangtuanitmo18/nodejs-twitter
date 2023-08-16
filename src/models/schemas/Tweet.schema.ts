@@ -12,6 +12,8 @@ interface TweetConstructor {
   hashtags: ObjectId[]
   mentions: string[]
   medias: Media[]
+  twitter_circle?: ObjectId[]
+
   guest_views?: number
   user_views?: number
   created_at?: Date
