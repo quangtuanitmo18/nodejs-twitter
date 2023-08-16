@@ -33,3 +33,11 @@ export enum TweetAudience {
   Everyone, // 0
   TwitterCircle // 1
 }
+export enum MediaTypeQuery {
+  Image = 'image',
+  Video = 'video'
+}
+export enum PeopleFollow {
+  Anyone = '0',
+  Following = '1'
+}
