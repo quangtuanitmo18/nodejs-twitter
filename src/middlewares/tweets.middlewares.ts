@@ -111,6 +111,7 @@ export const createTweetValidator = validate(
     }
   })
 )
+
 export const tweetIdValidator = validate(
   checkSchema(
     {
@@ -242,8 +243,7 @@ export const tweetIdValidator = validate(
                 message: TWEETS_MESSAGES.TWEET_NOT_FOUND
               })
             }
-            req.tweet = tweet
-
+            ;(req as Request).tweet = tweet
             return true
           }
         }
@@ -252,6 +252,7 @@ export const tweetIdValidator = validate(
     ['params', 'body']
   )
 )
+
 // Muốn sử dụng async await trong handler express thì phải có try catch
 // Nếu không dùng try catch thì phải dùng wrapRequestHandler
 export const audienceValidator = wrapRequestHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -289,6 +290,7 @@ export const audienceValidator = wrapRequestHandler(async (req: Request, res: Re
   }
   next()
 })
+
 export const getTweetChildrenValidator = validate(
   checkSchema(
     {
@@ -297,7 +299,15 @@ export const getTweetChildrenValidator = validate(
           options: [tweetTypes],
           errorMessage: TWEETS_MESSAGES.INVALID_TYPE
         }
-      },
+      }
+    },
+    ['query']
+  )
+)
+
+export const paginationValidator = validate(
+  checkSchema(
+    {
       limit: {
         isNumeric: true,
         custom: {
