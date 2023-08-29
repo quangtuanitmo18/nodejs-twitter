@@ -113,6 +113,11 @@ export const serveSegmentController = (req: Request, res: Response, next: NextFu
   // })
   sendFileFromS3(res, `videos-hls/${id}/${v}/${segment}`)
 }
+export const XemImageController = (req: Request, res: Response, next: NextFunction) => {
+  const { keyImage } = req.params
+  console.log(keyImage)
+  sendFileFromS3(res, `images/${keyImage}`)
+}
 export const videoStatusController = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params
   const result = await mediasService.getVideoStatus(id as string)

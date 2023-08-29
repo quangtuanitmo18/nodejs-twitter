@@ -1,0 +1,30 @@
+paths:
+  /tweets/:
+    post:
+      tags:
+        - tweets
+      summary: Tạo tweet
+      description: Tạo tweet
+      operationId: create-tweet
+      requestBody:
+        description: tạo tweet
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TweetBody'
+        required: true
+      responses:
+        '200':
+          description: Tạo tweet thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: create tweet success
+                  result:
+                    # $ref: '#/components/schemas/createTweet'
+        '422':
+          description: Invalid input

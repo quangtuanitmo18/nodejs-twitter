@@ -1,0 +1,14 @@
+components:
+  schemas:
+    UserVerifyStatus:
+      type: number
+      enum: [Unverified, Verified, Banned]
+      example: 1
+    TweetType:
+      type: number
+      enum: [Tweet, Retweet, Comment, QuoteTweet]
+      example: 0
+    TweetAudience:
+      type: number
+      enum: [Everyone, TwitterCircle]
+      example: 0

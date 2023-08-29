@@ -1,0 +1,43 @@
+components:
+  schemas:
+    TweetBody:
+      type: object
+
+      properties:
+        type:
+          $ref: '#/components/schemas/TweetType'
+        audience:
+          $ref: '#/components/schemas/TweetAudience'
+        content:
+          type: string
+          example: 'nguyen quang tuan'
+        parent_id:
+          type: string | null
+          example: null
+        hashtags:
+          type: array
+          items:
+            type: string
+          example: ['javascript', 'reactjs']
+        mentions:
+          type: array
+          items:
+            type: string
+            format: MongoId
+          example: ['64edb6961e7f38018109e798', '64edb6961e7f38018109e799']
+        medias:
+          type: array
+          items:
+            properties:
+              url:
+                type: string
+                example: 'https:link-image/name-iamge.png'
+              type:
+                type: number
+                example: 0
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
