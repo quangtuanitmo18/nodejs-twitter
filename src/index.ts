@@ -14,7 +14,25 @@ import likesRouter from './routes/likes.routes'
 import searchRouter from './routes/searchs.routes'
 // import './utils/fake'
 import '~/utils/s3'
+import YAML from 'yaml'
+// import fs from 'fs'
+// import path from 'path'
+import swaggerUi from 'swagger-ui-express'
+import swaggerJsdoc from 'swagger-jsdoc'
+// const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
+// const swaggerDocument = YAML.parse(file)
 
+const options: swaggerJsdoc.Options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'X clone (Twitter API)',
+      version: '1.0.0'
+    }
+  },
+  apis: ['./openapi/*.yaml', './openapi/**/*.yaml'] // files containing annotations as above
+}
+const openapiSpecification = swaggerJsdoc(options)
 config()
 
 databaseService.connect().then(() => {
@@ -32,6 +50,7 @@ const port = process.env.PORT || 4000
 
 initFolder()
 app.use(express.json())
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification))
 app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
 // app.use('/static', express.static(UPLOAD_VIDEO_DIR))

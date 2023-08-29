@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  XemImageController,
   uploadImageController,
   uploadVideoController,
   uploadVideoHLSController,
@@ -33,4 +34,5 @@ mediasRouter.get(
   verifiedUserValidator,
   wrapRequestHandler(videoStatusController)
 )
+
 export default mediasRouter
