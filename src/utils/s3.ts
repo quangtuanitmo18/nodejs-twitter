@@ -7,12 +7,13 @@ import { error } from 'console'
 import { reject } from 'lodash'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { Response } from 'express'
-config()
+import { envConfig } from '~/constants/config'
+
 const s3 = new S3({
-  region: process.env.S3_REGION,
+  region: envConfig.s3Region,
   credentials: {
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string
+    secretAccessKey: envConfig.awsSecretAccessKey,
+    accessKeyId: envConfig.awsAccessKeyId
   }
 })
 
@@ -28,7 +29,7 @@ export const uploadFileToS3 = ({
   const parallelUploads3 = new Upload({
     client: s3,
     params: {
-      Bucket: process.env.S3_BUCKET,
+      Bucket: envConfig.s3BucketName,
       Key: filename,
       Body: fs.readFileSync(filepath),
       ContentType: contentType
@@ -46,7 +47,7 @@ export const deleteFileS3 = (key: string) => {
   return new Promise((resolve, reject) => {
     s3.deleteObject(
       {
-        Bucket: process.env.S3_BUCKET,
+        Bucket: envConfig.s3BucketName,
         Key: key
       },
       (err, data) => {
@@ -63,7 +64,7 @@ export const deleteFileS3 = (key: string) => {
 export const sendFileFromS3 = async (res: Response, filepath: string) => {
   try {
     const data = await s3.getObject({
-      Bucket: process.env.S3_BUCKET as string,
+      Bucket: envConfig.s3BucketName,
       Key: filepath
     })
     ;(data.Body as any).pipe(res)

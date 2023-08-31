@@ -19,6 +19,7 @@ import YAML from 'yaml'
 // import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
+import { envConfig } from './constants/config'
 // const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
 // const swaggerDocument = YAML.parse(file)
 
@@ -46,7 +47,7 @@ databaseService.connect().then(() => {
 const app = express()
 app.use(cors())
 
-const port = process.env.PORT || 4000
+const port = envConfig.port || 4000
 
 initFolder()
 app.use(express.json())
