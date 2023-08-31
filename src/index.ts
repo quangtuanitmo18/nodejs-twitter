@@ -7,18 +7,22 @@ import { initFolder } from './utils/file'
 import { config } from 'dotenv'
 import staticRouter from './routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from './constants/dir'
-import cors from 'cors'
+import cors, { CorsOptions } from 'cors'
 import tweetsRouter from './routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
 import likesRouter from './routes/likes.routes'
 import searchRouter from './routes/searchs.routes'
-// import './utils/fake'
+// import './utils/fake
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
+
 import '~/utils/s3'
 import YAML from 'yaml'
 // import fs from 'fs'
 // import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
+import { envConfig, isProduction } from './constants/config'
 // const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
 // const swaggerDocument = YAML.parse(file)
 
@@ -44,9 +48,22 @@ databaseService.connect().then(() => {
 })
 
 const app = express()
-app.use(cors())
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false // Disable the `X-RateLimit-*` headers
+  // store: ... , // Use an external store for more precise rate limiting
+})
+app.use(limiter)
 
-const port = process.env.PORT || 4000
+app.use(helmet())
+const corsOptions: CorsOptions = {
+  origin: isProduction ? envConfig.clientUrl : '*'
+}
+app.use(cors(corsOptions))
+
+const port = envConfig.port || 4000
 
 initFolder()
 app.use(express.json())
