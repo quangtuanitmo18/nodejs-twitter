@@ -13,12 +13,11 @@ import databaseService from '~/services/database.services'
 import VideoStatus from '~/models/schemas/VideoStatus.shema'
 import { Media } from '~/models/Others'
 import { convertPathtoEncodeHls } from '~/utils/app'
-import { uploadFileToS3 } from '~/utils/s3'
+import { getUrlPresigned, uploadFileToS3, uploadFileToS3Presigned } from '~/utils/s3'
 import mime from 'mime'
 import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3'
 import { rimrafSync } from 'rimraf'
-
-config()
+import { url } from 'inspector'
 
 class Queue {
   items: string[]
@@ -135,6 +134,7 @@ class MediasService {
         const newFullFilename = `${newName}.jpg`
         const newPath = path.resolve(UPLOAD_IMAGE_DIR, newFullFilename)
         await sharp(file.filepath).jpeg().toFile(newPath)
+        console.log(newFullFilename)
         const s3Result = await uploadFileToS3({
           filename: 'images/' + newFullFilename,
           filepath: newPath,
@@ -155,6 +155,56 @@ class MediasService {
     )
     return result
   }
+
+  async SignUrlAccess(key: string) {
+    const PresignedUrl = await getUrlPresigned(key)
+    console.log(key)
+    return PresignedUrl
+    // await Promise.all([fsPromise.unlink(file.filepath), fsPromise.unlink(newPath)])
+    // return {
+    //   url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
+    //   type: MediaType.Image
+    // }
+    // return {
+    //   url: isProduction
+    //     ? `${process.env.HOST}/static/image/${newFullFilename}`
+    //     : `http://localhost:${process.env.PORT}/static/image/${newFullFilename}`,
+    //   type: MediaType.Image
+    // }
+  }
+
+  async uploadImagePresigned(req: Request) {
+    const files = await handleUploadImage(req)
+    const result = await Promise.all(
+      files.map(async (file) => {
+        const newName = getNameFromFullname(file.newFilename)
+        console.log(newName)
+        const newFullFilename = `${newName}.jpg`
+        const newPath = path.resolve(UPLOAD_IMAGE_DIR, newFullFilename)
+        await sharp(file.filepath).jpeg().toFile(newPath)
+        const PresignedUrl = await uploadFileToS3Presigned({
+          filename: newFullFilename,
+          filepath: newPath,
+          contentType: mime.getType(newPath) as string
+        })
+        console.log(PresignedUrl)
+        return PresignedUrl
+        // await Promise.all([fsPromise.unlink(file.filepath), fsPromise.unlink(newPath)])
+        // return {
+        //   url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
+        //   type: MediaType.Image
+        // }
+        // return {
+        //   url: isProduction
+        //     ? `${process.env.HOST}/static/image/${newFullFilename}`
+        //     : `http://localhost:${process.env.PORT}/static/image/${newFullFilename}`,
+        //   type: MediaType.Image
+        // }
+      })
+    )
+    return result
+  }
+
   async uploadVideo(req: Request) {
     const files = await handleUploadVideo(req)
     const result: Media[] = await Promise.all(

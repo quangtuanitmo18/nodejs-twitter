@@ -7,12 +7,31 @@ import mediasService from '~/services/medias.services'
 import fs from 'fs'
 import mime from 'mime'
 import { sendFileFromS3 } from '~/utils/s3'
+import { SignUrlAccessParams } from '~/models/requests/Media.requests'
 
 export const uploadImageController = async (req: Request, res: Response, next: NextFunction) => {
   const url = await mediasService.uploadImage(req)
   return res.json({
     message: USERS_MESSAGES.UPLOAD_SUCCESS,
     result: url
+  })
+}
+export const uploadImagePresignedController = async (req: Request, res: Response, next: NextFunction) => {
+  const url = await mediasService.uploadImagePresigned(req)
+  return res.json({
+    message: USERS_MESSAGES.UPLOAD_SUCCESS,
+    result: url
+  })
+}
+export const SignUrlAccessController = async (
+  req: Request<SignUrlAccessParams, any, any, any>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { key } = req.params
+  const url = await mediasService.SignUrlAccess(key)
+  return res.json({
+    url: url
   })
 }
 

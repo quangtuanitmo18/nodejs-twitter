@@ -9,7 +9,7 @@ import Hashtag from '~/models/schemas/Hashtag.schema'
 import Bookmark from '~/models/schemas/Bookmark.schema'
 import Like from '~/models/schemas/Like.schema'
 import { envConfig } from '~/constants/config'
-config()
+
 const uri = `mongodb+srv://${envConfig.dbUsername}:${envConfig.dbPassword}@cluster0.jlyrc4n.mongodb.net/?retryWrites=true&w=majority`
 
 class DatabaseService {
