@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import {
+  SignUrlAccessController,
   XemImageController,
   uploadImageController,
+  uploadImagePresignedController,
   uploadVideoController,
   uploadVideoHLSController,
   videoStatusController
@@ -16,6 +18,19 @@ mediasRouter.post(
   verifiedUserValidator,
   wrapRequestHandler(uploadImageController)
 )
+mediasRouter.post(
+  '/upload-image-presigned',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(uploadImagePresignedController)
+)
+mediasRouter.get(
+  '/sign-url-access/:key',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(SignUrlAccessController)
+)
+
 mediasRouter.post(
   '/upload-video',
   accessTokenValidator,
