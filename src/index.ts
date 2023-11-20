@@ -14,7 +14,7 @@ import likesRouter from './routes/likes.routes'
 import searchRouter from './routes/searchs.routes'
 // import './utils/fake
 import Conversation from '~/models/schemas/Conversations.schema'
-
+import conversationsRouter from '~/routes/conversations.routes'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 
@@ -84,6 +84,7 @@ app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
 app.use('/likes', likesRouter)
 app.use('/search', searchRouter)
+app.use('/conversations', conversationsRouter)
 
 app.use(defaultErrorHandler)
 const io = new Server(httpServer, {
@@ -117,6 +118,7 @@ io.on('connection', (socket) => {
     if (!receiver_socket_id) {
       return
     }
+    console.log(receiver_socket_id)
     socket.to(receiver_socket_id).emit('receive private message', {
       content: data.content,
       from: user_id
