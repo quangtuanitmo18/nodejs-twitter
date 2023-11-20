@@ -23,8 +23,6 @@ import YAML from 'yaml'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { envConfig, isProduction } from './constants/config'
-// const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
-// const swaggerDocument = YAML.parse(file)
 
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -90,10 +88,29 @@ const io = new Server(httpServer, {
     origin: 'http://localhost:3000'
   }
 })
-
+const users: {
+  [key: string]: {
+    socket_id: string
+  }
+} = {}
 io.on('connection', (socket) => {
   console.log(`user ${socket.id} connected`)
+
+  const user_id = socket.handshake.auth._id
+  users[user_id] = {
+    socket_id: socket.id
+  }
+  console.log(users)
+  socket.on('private message', (data) => {
+    const receiver_socket_id = users[data.to].socket_id
+    socket.to(receiver_socket_id).emit('receive private message', {
+      content: data.content,
+      from: user_id
+    })
+  })
+
   socket.on('disconnect', () => {
+    delete users[user_id]
     console.log(`user ${socket.id} disconnected`)
   })
   socket.on('hello', (agr) => {
