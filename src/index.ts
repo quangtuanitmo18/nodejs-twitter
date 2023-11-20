@@ -96,6 +96,12 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`user ${socket.id} disconnected`)
   })
+  socket.on('hello', (agr) => {
+    console.log(agr)
+  })
+  socket.emit('hi', {
+    message: `Xin chào ${socket.id} đã kết nối thành công`
+  })
 })
 
 httpServer.listen(port, () => {
