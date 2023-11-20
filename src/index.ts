@@ -26,6 +26,9 @@ import { envConfig, isProduction } from './constants/config'
 // const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
 // const swaggerDocument = YAML.parse(file)
 
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -48,6 +51,9 @@ databaseService.connect().then(() => {
 })
 
 const app = express()
+
+const httpServer = createServer(app)
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
@@ -79,6 +85,19 @@ app.use('/likes', likesRouter)
 app.use('/search', searchRouter)
 
 app.use(defaultErrorHandler)
-app.listen(port, () => {
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000'
+  }
+})
+
+io.on('connection', (socket) => {
+  console.log(`user ${socket.id} connected`)
+  socket.on('disconnect', () => {
+    console.log(`user ${socket.id} disconnected`)
+  })
+})
+
+httpServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
