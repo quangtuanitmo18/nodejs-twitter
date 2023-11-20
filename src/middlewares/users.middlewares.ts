@@ -16,6 +16,7 @@ import { UserVerifyStatus } from '~/constants/enums'
 import { REGEX_USERNAME } from '~/constants/regex'
 import { env } from 'process'
 import { envConfig } from '~/constants/config'
+import { verifyAccessToken } from '~/utils/commons'
 
 const passwordSchema: ParamSchema = {
   notEmpty: {
@@ -245,26 +246,7 @@ export const accessTokenValidator = validate(
           options: async (value: string, { req }) => {
             const access_token = (value || '').split(' ')[1]
             // console.log('access_token', access_token)
-            if (!access_token) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
-              })
-            }
-            try {
-              const decoded_authorization = await verifyToken({
-                token: access_token,
-                secretOrPublicKey: envConfig.jwtSecretAccessToken as string
-              })
-              ;(req as Request).decoded_authorization = decoded_authorization
-            } catch (error) {
-              throw new ErrorWithStatus({
-                message: capitalize((error as JsonWebTokenError).message),
-                status: HTTP_STATUS.UNAUTHORIZED
-              })
-            }
-
-            return true
+            return await verifyAccessToken(access_token, req as Request)
           }
         }
       }
