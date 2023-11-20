@@ -13,6 +13,8 @@ import bookmarksRouter from './routes/bookmarks.routes'
 import likesRouter from './routes/likes.routes'
 import searchRouter from './routes/searchs.routes'
 // import './utils/fake
+import Conversation from '~/models/schemas/Conversations.schema'
+
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 
@@ -26,6 +28,7 @@ import { envConfig, isProduction } from './constants/config'
 
 import { createServer } from 'http'
 import { Server } from 'socket.io'
+import { ObjectId } from 'mongodb'
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -101,8 +104,16 @@ io.on('connection', (socket) => {
     socket_id: socket.id
   }
   console.log(users)
-  socket.on('private message', (data) => {
+  socket.on('private message', async (data) => {
     const receiver_socket_id = users[data.to].socket_id
+
+    await databaseService.conversations.insertOne(
+      new Conversation({
+        sender_id: new ObjectId(data.from),
+        receiver_id: new ObjectId(data.to),
+        content: data.content
+      })
+    )
     if (!receiver_socket_id) {
       return
     }

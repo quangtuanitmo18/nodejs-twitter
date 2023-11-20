@@ -9,6 +9,7 @@ import Hashtag from '~/models/schemas/Hashtag.schema'
 import Bookmark from '~/models/schemas/Bookmark.schema'
 import Like from '~/models/schemas/Like.schema'
 import { envConfig } from '~/constants/config'
+import Conversation from '~/models/schemas/Conversations.schema'
 
 const uri = `mongodb+srv://${envConfig.dbUsername}:${envConfig.dbPassword}@cluster0.jlyrc4n.mongodb.net/?retryWrites=true&w=majority`
 
@@ -94,6 +95,9 @@ class DatabaseService {
   }
   get likes(): Collection<Like> {
     return this.db.collection('likes')
+  }
+  get conversations(): Collection<Conversation> {
+    return this.db.collection('conversations')
   }
 }
 
