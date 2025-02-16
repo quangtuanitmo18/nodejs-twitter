@@ -132,6 +132,8 @@ export const serveSegmentController = (req: Request, res: Response, next: NextFu
   // })
   sendFileFromS3(res, `videos-hls/${id}/${v}/${segment}`)
 }
+
+// để nhận được file thôi
 export const XemImageController = (req: Request, res: Response, next: NextFunction) => {
   const { keyImage } = req.params
   console.log(keyImage)
