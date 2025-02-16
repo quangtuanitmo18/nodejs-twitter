@@ -13,6 +13,8 @@ import bookmarksRouter from './routes/bookmarks.routes'
 import likesRouter from './routes/likes.routes'
 import searchRouter from './routes/searchs.routes'
 // import './utils/fake
+import Conversation from '~/models/schemas/Conversations.schema'
+import conversationsRouter from '~/routes/conversations.routes'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 
@@ -23,8 +25,18 @@ import YAML from 'yaml'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { envConfig, isProduction } from './constants/config'
-// const file = fs.readFileSync(path.resolve('twitter-swagger.yaml'), 'utf8')
-// const swaggerDocument = YAML.parse(file)
+
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import { ObjectId } from 'mongodb'
+
+import { verifyAccessToken } from '~/utils/commons'
+import { TokenPayload } from '~/models/requests/User.requests'
+import { UserVerifyStatus } from '~/constants/enums'
+import { ErrorWithStatus } from '~/models/Errors'
+import { USERS_MESSAGES } from '~/constants/messages'
+import HTTP_STATUS from '~/constants/httpStatus'
+import initSocket from './utils/socket'
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -48,6 +60,9 @@ databaseService.connect().then(() => {
 })
 
 const app = express()
+
+const httpServer = createServer(app)
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
@@ -77,8 +92,11 @@ app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
 app.use('/likes', likesRouter)
 app.use('/search', searchRouter)
+app.use('/conversations', conversationsRouter)
 
 app.use(defaultErrorHandler)
-app.listen(port, () => {
+initSocket(httpServer)
+
+httpServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })

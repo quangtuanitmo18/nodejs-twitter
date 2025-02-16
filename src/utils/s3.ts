@@ -41,6 +41,8 @@ export const uploadFileToS3 = ({
   })
   return parallelUploads3.done()
 }
+
+// lấy presigned url để upload
 export const uploadFileToS3Presigned = async ({
   filename,
   filepath,
@@ -67,6 +69,7 @@ export const uploadFileToS3Presigned = async ({
   return signedUrl
 }
 
+// đã upload rồi, cái này để lấy url truy cập vào file thôi
 export const getUrlPresigned = async (key: string) => {
   const params = {
     Bucket: envConfig.s3BucketName,
