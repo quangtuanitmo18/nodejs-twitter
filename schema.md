@@ -1,32 +1,32 @@
-# Thiết kế Schema Twitter bằng MongoDB
+# Design Twitter Schema using MongoDB
 
-## Một số ghi chú nhỏ
+## Some small notes
 
-- Tên collection nên được đặt theo dạng số nhiều, kiểu snake_case, ví dụ `users`, `refresh_tokens`
-- Tên field nên được đặt theo dạng snake_case, ví dụ `email_verify_token`, `forgot_password_token`
-- `_id` là trường được MongoDB tự động tạo ra, không cần phải thêm trường `_id` vào. Cũng không nên tìm mọi cách để đổi tên `_id` thành `id` hay thay đổi cơ chế của nó. Vì sẽ làm giảm hiệu suất của MongoDB
-- Trường `created_at`, `updated_at` nên có kiểu `Date` để dễ dàng sắp xếp, tìm kiếm, lọc theo thời gian
-- Trường `created_at` nên luôn luôn được thêm vào khi tạo mới document
-- Trường `updated_at` thì optional
-- Tất cả trường đại diện id của document thì nên có kiểu `ObjectId`
-- Để biết kiểu dữ liệu mà mongo hỗ trợ thì xem tại [đây](https://docs.mongodb.com/manual/reference/bson-types/)
+- Collection names should be plural and in snake_case, e.g., `users`, `refresh_tokens`
+- Field names should be in snake_case, e.g., `email_verify_token`, `forgot_password_token`
+- `_id` is a field automatically created by MongoDB, no need to add `_id` field. Also, do not try to rename `_id` to `id` or change its mechanism. It will reduce MongoDB's performance.
+- Fields `created_at`, `updated_at` should be of type `Date` for easy sorting, searching, and filtering by time.
+- The `created_at` field should always be added when creating a new document.
+- The `updated_at` field is optional.
+- All fields representing document ids should be of type `ObjectId`.
+- To know the data types supported by MongoDB, see [here](https://docs.mongodb.com/manual/reference/bson-types/).
 
-## Phân tích chức năng
+## Function analysis
 
 ## users
 
-- Người dùng đăng ký nhập `name`, `email`, `day_of_birth`, `password` là được. Vậy `name`, `email`, `day_of_birth`, `password` là những trường bắt buộc phải có bên cạnh`_id` là trường tự động tạo ra bởi MongoDB
-- Sau khi đăng ký xong thì sẽ có email đính kèm `email_verify_token` để xác thực email (`duthanhduoc.com/verify-email?email_verify_token=123321123`). Mỗi user chỉ có 1 `email_verify_token` duy nhất, vì nếu user nhấn re-send email thì sẽ tạo ra `email_verify_token` mới thay thế cái cũ. Vậy nên ta lưu thêm trường `email_verify_token` vào schema `users`. Trường này có kiểu `string`, nếu user xác thực email thì ta sẽ set `''`.
-- Tương tự ta có chức năng quên mật khẩu thì sẽ gửi mail về để reset mật khẩu, ta cũng dùng `forgot_password_token` để xác thực (`duthanhduoc.com/forgot-password?forgot_password_token=123321123`). Vậy ta cũng lưu thêm trường `forgot_password_token` vào schema `users`. Trường này có kiểu `string`, nếu user reset mật khẩu thì ta sẽ set `''`.
-- Nên có một trường là `verify` để biết trạng thái tài khoản của user. Ví dụ chưa xác thực email, đã xác thực, bị khóa, lên tích xanh ✅. Vậy giá trị của nó nên là enum
-- Người dùng có thể update các thông tin sau vào profile: `bio`, `location`, `website`, `username`, `avatar`, `cover_photo`. Vậy ta cũng lưu các trường này vào schema `users` với kiểu là `string`. `avatar`, `cover_photo` đơn giản chi là string url thôi. Đây là những giá trị optional, tức người dùng không nhập vào thì vẫn dùng bình thường. Nhưng cũng nên lưu set `''` khi người dùng không nhập gì để tiện quản lý.
-- Cuối cùng là trường `created_at`, `updated_at` để biết thời gian tạo và cập nhật user. Vậy ta lưu thêm 2 trường này vào schema User với kiểu `Date`. 2 trường này luôn luôn có giá trị.
+- Users register by entering `name`, `email`, `day_of_birth`, `password`. So `name`, `email`, `day_of_birth`, `password` are required fields besides `_id` which is automatically created by MongoDB.
+- After registration, an email with `email_verify_token` will be sent to verify the email (`duthanhduoc.com/verify-email?email_verify_token=123321123`). Each user has only one unique `email_verify_token`, because if the user clicks re-send email, a new `email_verify_token` will be created to replace the old one. So we add the `email_verify_token` field to the `users` schema. This field is of type `string`, if the user verifies the email, we set it to `''`.
+- Similarly, for the forgot password function, an email will be sent to reset the password, we use `forgot_password_token` to verify (`duthanhduoc.com/forgot-password?forgot_password_token=123321123`). So we add the `forgot_password_token` field to the `users` schema. This field is of type `string`, if the user resets the password, we set it to `''`.
+- There should be a `verify` field to know the user's account status. For example, unverified email, verified, banned, blue tick. So its value should be an enum.
+- Users can update the following information in their profile: `bio`, `location`, `website`, `username`, `avatar`, `cover_photo`. So we add these fields to the `users` schema with type `string`. `avatar`, `cover_photo` are simply string URLs. These are optional values, meaning users can still use the system without entering them. But it is also good to set them to `''` if the user does not enter anything for easier management.
+- Finally, the `created_at`, `updated_at` fields to know the creation and update time of the user. So we add these two fields to the User schema with type `Date`. These two fields always have values.
 
 ```ts
 enum UserVerifyStatus {
-  Unverified, // chưa xác thực email, mặc định = 0
-  Verified, // đã xác thực email
-  Banned // bị khóa
+  Unverified, // unverified email, default = 0
+  Verified, // verified email
+  Banned // banned
 }
 interface User {
   _id: ObjectId
@@ -36,8 +36,8 @@ interface User {
   password: string
   created_at: Date
   updated_at: Date
-  email_verify_token: string // jwt hoặc '' nếu đã xác thực email
-  forgot_password_token: string // jwt hoặc '' nếu đã xác thực email
+  email_verify_token: string // jwt or '' if email is verified
+  forgot_password_token: string // jwt or '' if password is reset
   verify: UserVerifyStatus
   bio: string // optional
   location: string // optional
@@ -50,12 +50,12 @@ interface User {
 
 ## refresh_tokens
 
-Hệ thống sẽ dùng JWT để xác thực người dùng. Vậy mỗi lần người dùng đăng nhập thành công thì sẽ tạo ra 1 JWT access token và 1 refresh token.
+The system will use JWT to authenticate users. So every time a user successfully logs in, a JWT access token and a refresh token will be created.
 
-- JWT access token thì không cần lưu vào database, vì chúng ta sẽ cho nó stateless
-- Còn refresh token thì cần lưu vào database để tăng tính bảo mật.
-  Một user thì có thể có nhiều refresh token (không giới hạn), nên không thể lưu hết vào trong collection `users` được => Quan hệ 1 - rất nhiều
-  Và đôi lúc chúng ta chỉ quan tâm đến refresh token mà không cần biết user là ai. Vậy nên ta tạo ra một collection riêng để lưu refresh token.
+- JWT access token does not need to be stored in the database, as we will make it stateless.
+- Refresh token needs to be stored in the database for increased security.
+  A user can have many refresh tokens (unlimited), so we cannot store them all in the `users` collection => One-to-many relationship.
+  Sometimes we only care about the refresh token without knowing who the user is. So we create a separate collection to store refresh tokens.
 
 ```ts
 interface RefreshToken {
@@ -68,10 +68,10 @@ interface RefreshToken {
 
 ## followers
 
-Một người dùng có thể follow rất nhiều user khác, nếu dùng 1 mảng `followings` chứa ObjectId trong collection `users` thì sẽ không tối ưu. Vì dễ chạm đến giới hạn 16MB của MongoDB.
-Chưa hết, nếu dùng mảng `followings` thì khi muốn tìm kiếm user A đang follow ai rất dễ nhưng ngược lại, tìm kiếm ai đang follow user A thì lại rất khó.
-Vậy nên ta tạo ra một collection riêng để lưu các mối quan hệ follow giữa các user là hợp lý hơn cả.
-1 user có rất nhiều follower, và 1 follower cũng có rất nhiều user khác follow lại => Quan hệ rất nhiều - rất nhiều
+A user can follow many other users, if we use an array `followings` containing ObjectId in the `users` collection, it will not be optimal. Because it can easily reach the 16MB limit of MongoDB.
+Moreover, if we use the `followings` array, it is easy to find who user A is following, but it is difficult to find who is following user A.
+So we create a separate collection to store the follow relationships between users.
+1 user has many followers, and 1 follower also has many other users following back => Many-to-many relationship.
 
 ```ts
 interface Follower {
@@ -84,23 +84,23 @@ interface Follower {
 
 ## tweets
 
-Chúng ta sẽ chọn ra những tính năng chính của tweet để clone
+We will select the main features of a tweet to clone
 
-1. Tweet có thể chứa text, hashtags, metions, ảnh, video
-2. Tweet có thể hiển thị cho everyone hoặc Twitter Circle
-3. Tweet có thể quy định người reply (everyone, người mà chúng ta follow , người chúng ta metion)
+1. Tweet can contain text, hashtags, mentions, images, videos
+2. Tweet can be visible to everyone or Twitter Circle
+3. Tweet can specify who can reply (everyone, people we follow, people we mention)
 
-- Tweet sẽ có nested tweet, nghĩa là tweet có thể chứa tweet con bên trong. Nếu dùng theo kiểu nested object sẽ không phù hợp, vì sớm thôi, nó sẽ chạm đến giới hạn. Chưa kể query thông tin 1 tweet con rất khó.
-  Vậy nên ta sẽ lưu trường `parent_id` để biết tweet này là con của ai. Nếu `parent_id` là `null` thì đó là tweet gốc.
-- Nếu là tweet bình thường thì sẽ có `content` là string. Còn nếu là retweet thì sẽ không có `content` mà chỉ có `parent_id` thôi, lúc này có thể cho content là `''` hoặc `null`, như mình phân tích ở những bài trước thì mình thích để `''` hơn, đỡ phải phân tích trường hợp `null`. Vậy nên `content` có thể là `string`.
-  > Nếu là '' thì sẽ chiếm bộ nhớ hơn là null, nhưng điều này là không đáng kể so với lợi ích nó đem lại
-- `audience` đại diện cho tính riêng tư của tweet. Ví dụ tweet có thể là public cho mọi người xem hoặc chỉ cho nhóm người nhất định. Vậy nên `visibility` có thể là `TweetAudience` enum.
-- `type` đại diện cho loại tweet. Ví dụ tweet, retweet, quote tweet.
-- `hashtag` là mảng chứa ObjectId của các hashtag. Vì mỗi tweet có thể có nhiều hashtag. Vậy nên `hashtag` có thể là `ObjectId[]`.
-- `mentions` là mảng chứa ObjectId của các user được mention. Vì mỗi tweet có thể có nhiều user được mention. Vậy nên `mentions` có thể là `ObjectId[]`.
-- `medias` là mảng chứa ObjectId của các media. Vì mỗi tweet chỉ có thể có 1 vài media. Nếu upload ảnh thì sẽ không upload được video và ngược lại. Vậy nên `medias` có thể là `Media[]`.
-- Bên twitter sẽ có rất là nhiều chỉ số để phân tích lượt tiếp cận của 1 tweet. Trong giới hạn của khóa học thì chúng ta chỉ phân tích lượt view thôi.
-  Lượt view thì chúng ta chia ra làm 2 loại là `guest_views` là số lượng lượt xem của tweet từ người dùng không đăng nhập và `user_views` là dành cho đã đăng nhập. 2 trường này mình sẽ cho kiểu dữ liệu là `number`.
+- Tweet will have nested tweets, meaning a tweet can contain child tweets. Using nested objects is not suitable, because it will soon reach the limit. Moreover, querying information of a child tweet is very difficult.
+  So we will store the `parent_id` field to know who this tweet belongs to. If `parent_id` is `null`, it is the root tweet.
+- If it is a normal tweet, it will have `content` as a string. If it is a retweet, it will not have `content` but only `parent_id`, in this case, `content` can be `''` or `null`, as I analyzed in previous articles, I prefer `''`, it avoids analyzing the `null` case. So `content` can be `string`.
+  > If it is '', it will take up more memory than null, but this is negligible compared to the benefits it brings.
+- `audience` represents the privacy of the tweet. For example, the tweet can be public for everyone to see or only for a certain group of people. So `visibility` can be `TweetAudience` enum.
+- `type` represents the type of tweet. For example, tweet, retweet, quote tweet.
+- `hashtag` is an array containing ObjectId of hashtags. Because each tweet can have many hashtags. So `hashtag` can be `ObjectId[]`.
+- `mentions` is an array containing ObjectId of mentioned users. Because each tweet can mention many users. So `mentions` can be `ObjectId[]`.
+- `medias` is an array containing ObjectId of media. Because each tweet can have a few media. If uploading images, videos cannot be uploaded and vice versa. So `medias` can be `Media[]`.
+- Twitter has many metrics to analyze the reach of a tweet. Within the course's limits, we only analyze views.
+  Views are divided into 2 types: `guest_views` is the number of views from non-logged-in users and `user_views` is for logged-in users. These two fields will be of type `number`.
 
 ```ts
 interface Tweet {
@@ -109,7 +109,7 @@ interface Tweet {
   type: TweetType
   audience: TweetAudience
   content: string
-  parent_id: null | ObjectId //  chỉ null khi tweet gốc
+  parent_id: null | ObjectId // only null for root tweet
   hashtags: ObjectId[]
   mentions: ObjectId[]
   medias: Media[]
@@ -143,7 +143,7 @@ enum TweetType {
 
 ## bookmarks
 
-Bookmark các tweet lại, mỗi user không giới hạn số lượng bookmark. Sở dĩ không cần `updated_at` là vì trong trường hợp người dùng unbookmark thì chúng ta sẽ xóa document này đi.
+Bookmark tweets, each user has an unlimited number of bookmarks. The `updated_at` field is not needed because if the user unbookmarks, we will delete this document.
 
 ```ts
 interface Bookmark {
@@ -156,7 +156,7 @@ interface Bookmark {
 
 ## likes
 
-Tương tự `bookmarks` thì chúng ta có collection `likes`
+Similar to `bookmarks`, we have the `likes` collection.
 
 ```ts
 interface Like {
@@ -169,10 +169,10 @@ interface Like {
 
 ## hashtags
 
-- Hỗ trợ tìm kiếm theo hashtag.
-- Mỗi tweet có thể có ít hashtag.
-- Mỗi hashtag có rất nhiều tweet.
-  ❌Không nên làm như dưới đây
+- Support searching by hashtag.
+- Each tweet can have few hashtags.
+- Each hashtag has many tweets.
+  ❌Should not do as below
 
 ```ts
 interface Tweet {
@@ -181,8 +181,8 @@ interface Tweet {
   type: TweetType
   audience: TweetAudience
   content: string
-  parent_id: null | ObjectId //  chỉ null khi tweet gốc
-  ❌hashtags:string[] // Không nên nhúng như thế này, vì sẽ gây khó khăn trong việc tìm kiếm những tweet nào có hashtag này, cũng như là gây lặp lại dữ liệu về tên hastag
+  parent_id: null | ObjectId // only null for root tweet
+  ❌hashtags:string[] // Should not embed like this, because it will make it difficult to search for tweets with this hashtag, as well as duplicate hashtag data
   mentions: ObjectId[]
   medias: Media[]
   guest_views: number
@@ -192,10 +192,10 @@ interface Tweet {
 }
 ```
 
-=> Quan hệ ít - rất nhiều
+=> Few-to-many relationship
 
-- Lưu một array ObjectId `hashtags` trong collection `tweets`
-- Tạo ra một collection riêng để lưu `hashtags` và không lưu mảng `tweet_id` vào trong collection `hashtags`. Vì nếu lưu `tweet_id` vào trong collection `hashtags` thì sẽ dễ chạm đến giới hạn 16MB của MongoDB. Và cũng không cần thiết để lưu, vì khi search các tweet liên quan đến hashtag thì chúng ta sẽ dùng id hashtag để tìm kiếm trong collection `tweets`.
+- Store an array of ObjectId `hashtags` in the `tweets` collection.
+- Create a separate collection to store `hashtags` and do not store the `tweet_id` array in the `hashtags` collection. Because if storing `tweet_id` in the `hashtags` collection, it will easily reach the 16MB limit of MongoDB. And it is not necessary to store, because when searching for tweets related to a hashtag, we will use the hashtag id to search in the `tweets` collection.
 
 ```ts
 interface Hashtag {
@@ -205,18 +205,18 @@ interface Hashtag {
 }
 ```
 
-## Luồng tạo 1 tweet
+## Tweet creation flow
 
-Ở đây mình sẽ giả sử một trường hợp tạo tweet đầy đủ hashtag, mention và media
-Một body đầy đủ sẽ như thế này
+Here I will assume a case of creating a tweet with full hashtags, mentions, and media.
+A full body will look like this
 
 ```ts
 interface TweetRequestBody {
   type: TweetType
   audience: TweetAudience
   content: string
-  parent_id: null | string //  chỉ null khi tweet gốc, không thì là tweet_id cha dạng string
-  hashtags: string[] // tên của hashtag dạng ['javascript', 'reactjs']
+  parent_id: null | string // only null for root tweet, otherwise it is the parent tweet_id as a string
+  hashtags: string[] // hashtag names as ['javascript', 'reactjs']
   mentions: string[] // user_id[]
   medias: Media[]
 }
@@ -224,15 +224,15 @@ interface TweetRequestBody {
 
 ### Validate Tweet body
 
-Nếu mà để validate pass 100% case của tweet thì rất tốn thời gian, nên mình sẽ validate những case chính. Tất nhiên nó sẽ dính 1 số case hiếm gặp, các bạn phát hiện thì tự bổ sung vào nhé.
+To validate 100% of tweet cases is very time-consuming, so I will validate the main cases. Of course, it will miss some rare cases, you can add them if you find them.
 
-- `type` phải là 1 trong 4 loại `TweetType`
-- `audience` phải là 1 trong 2 loại `TweetAudience`
-- Nếu `type` là retweet, comment, quotetweet thì `parent_id` phải là `tweet_id` của tweet cha, nếu `type` là tweet thì `parent_id` phải là `null`
-- Nếu `type` là retweet thì `content` phải là `''`. Nếu `type` là comment, quotetweet, tweet và không có `mentions` và `hashtags` thì `content` phải là string và không được rỗng.
-- `hashtags` phải là mảng các string
-- `mentions` phải là mảng các string dạng id
-- `medias` phải là mảng các `Media`
+- `type` must be one of the 4 types `TweetType`
+- `audience` must be one of the 2 types `TweetAudience`
+- If `type` is retweet, comment, quote tweet, `parent_id` must be the parent tweet_id, if `type` is tweet, `parent_id` must be `null`
+- If `type` is retweet, `content` must be `''`. If `type` is comment, quote tweet, tweet and has no `mentions` and `hashtags`, `content` must be a non-empty string.
+- `hashtags` must be an array of strings
+- `mentions` must be an array of strings as ids
+- `medias` must be an array of `Media`
 
 ### Schema validation Tweet
 
